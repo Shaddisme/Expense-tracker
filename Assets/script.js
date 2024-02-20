@@ -1,6 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
     const expenseForm = document.getElementById('expenseForm');
     const expenseList = document.getElementById('expenseList');
+    const addExpenseButton = document.getElementById('addExpense'); // Changed button ID
+    const totalAmountElement = document.getElementById('totalAmount'); // Moved outside the expense list
+
+    // New export button
+    const exportButton = document.createElement('button');
+    exportButton.textContent = 'Export Expenses';
+    exportButton.classList.add('export-btn');
+    document.body.insertBefore(exportButton, document.body.firstChild); // Insert before other content
 
     // Load expenses from local storage
     let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
@@ -61,13 +69,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <button class="delete-btn" data-id="${index}">Delete</button> <!-- Add delete button here -->
             `;
             expenseList.appendChild(expenseItem);
-            
+
             // Update total amount spent
             totalAmountSpent += expense.amount;
         });
 
         // Update the content of the totalAmount element
-        const totalAmountElement = document.getElementById('totalAmount');
         totalAmountElement.textContent = `Total Amount Spent: $${totalAmountSpent.toFixed(2)}`;
 
         // Highlight the most recent expense
@@ -78,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 mostRecentExpense.classList.remove('highlight');
             }, 3000); // Highlight for 3 seconds
         }
-        
+
         // Add event listeners to delete buttons
         const deleteButtons = document.querySelectorAll('.delete-btn');
         deleteButtons.forEach(function (button) {
@@ -120,5 +127,24 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update the display
         displayExpenses();
     }
-});
 
+    // Function to export expenses to a CSV file
+    function exportToCSV() {
+        const csvContent = "Description,Amount,Category,Notes\n"; // CSV header
+        expenses.forEach(expense => {
+            csvContent += `${expense.description},${expense.amount},${expense.category},${expense.notes}\n`; // Add each expense to the CSV content
+        });
+
+        // Create a Blob object containing the CSV data
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+
+        // Create a temporary anchor element to download the CSV file
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = 'expenses.csv'; // Specify the filename for the downloaded file
+        link.click(); // Trigger the click event to download the file
+    }
+
+    // Add event listener to the export button
+    exportButton.addEventListener('click', exportToCSV);
+});
